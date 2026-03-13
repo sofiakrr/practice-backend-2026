@@ -1,0 +1,148 @@
+{
+  "info": {
+    "name": "Cafe Booking API — Checkpoint 4",
+    "_postman_id": "cafe-booking-checkpoint4",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Логин админа",
+      "event": [{"listen": "test","script": {"exec": ["var d = pm.response.json(); if(d.token) pm.collectionVariables.set('admin_token', d.token);"]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Content-Type","value": "application/json"}],
+        "body": {"mode": "raw","raw": "{\n  \"email\": \"admin@cafe.com\",\n  \"password\": \"password\"\n}"},
+        "url": {"raw": "http://127.0.0.1:8000/api/auth/login","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","auth","login"]}
+      }
+    },
+    {
+      "name": "2. Логин пользователя",
+      "event": [{"listen": "test","script": {"exec": ["var d = pm.response.json(); if(d.token) pm.collectionVariables.set('user_token', d.token);"]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Content-Type","value": "application/json"}],
+        "body": {"mode": "raw","raw": "{\n  \"email\": \"user@cafe.com\",\n  \"password\": \"password\"\n}"},
+        "url": {"raw": "http://127.0.0.1:8000/api/auth/login","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","auth","login"]}
+      }
+    },
+    {
+      "name": "3. Список ресурсов с пагинацией",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources?per_page=3&page=1","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources"],"query": [{"key": "per_page","value": "3"},{"key": "page","value": "1"}]}
+      }
+    },
+    {
+      "name": "4. Фильтр по типу (vip)",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources?type=vip","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources"],"query": [{"key": "type","value": "vip"}]}
+      }
+    },
+    {
+      "name": "5. Фильтр по вместимости (от 4 мест)",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources?capacity=4","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources"],"query": [{"key": "capacity","value": "4"}]}
+      }
+    },
+    {
+      "name": "6. Фильтр по цене (до 400 руб)",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources?max_price=400","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources"],"query": [{"key": "max_price","value": "400"}]}
+      }
+    },
+    {
+      "name": "7. Сортировка по цене (по возрастанию)",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources?sort_by=price_per_hour&sort_order=asc","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources"],"query": [{"key": "sort_by","value": "price_per_hour"},{"key": "sort_order","value": "asc"}]}
+      }
+    },
+    {
+      "name": "8. Поиск свободных столиков на дату и время",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources/available?date=2026-03-20&start_time=10:00&end_time=12:00","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources","available"],"query": [{"key": "date","value": "2026-03-20"},{"key": "start_time","value": "10:00"},{"key": "end_time","value": "12:00"}]}
+      }
+    },
+    {
+      "name": "9. Поиск свободных с фильтром по вместимости",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources/available?date=2026-03-20&start_time=10:00&end_time=12:00&capacity=4","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources","available"],"query": [{"key": "date","value": "2026-03-20"},{"key": "start_time","value": "10:00"},{"key": "end_time","value": "12:00"},{"key": "capacity","value": "4"}]}
+      }
+    },
+    {
+      "name": "10. Пустой результат поиска (все заняты)",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources/available?date=2026-03-20&start_time=10:00&end_time=12:00&capacity=100","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources","available"],"query": [{"key": "date","value": "2026-03-20"},{"key": "start_time","value": "10:00"},{"key": "end_time","value": "12:00"},{"key": "capacity","value": "100"}]}
+      }
+    },
+    {
+      "name": "11. Расписание ресурса на день",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources/1/schedule?date=2026-03-20&mode=day","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources","1","schedule"],"query": [{"key": "date","value": "2026-03-20"},{"key": "mode","value": "day"}]}
+      }
+    },
+    {
+      "name": "12. Расписание ресурса на неделю",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources/1/schedule?date=2026-03-20&mode=week","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources","1","schedule"],"query": [{"key": "date","value": "2026-03-20"},{"key": "mode","value": "week"}]}
+      }
+    },
+    {
+      "name": "13. Просмотр отзывов ресурса со средним рейтингом",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/api/resources/1/reviews","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources","1","reviews"]}
+      }
+    },
+    {
+      "name": "14. Добавить отзыв (после завершённого бронирования)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Content-Type","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "body": {"mode": "raw","raw": "{\n  \"booking_id\": 1,\n  \"rating\": 5,\n  \"comment\": \"Прекрасный столик, обязательно вернусь!\"\n}"},
+        "url": {"raw": "http://127.0.0.1:8000/api/resources/1/reviews","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources","1","reviews"]}
+      }
+    },
+    {
+      "name": "15. Повторный отзыв — ожидаем 422",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Content-Type","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "body": {"mode": "raw","raw": "{\n  \"booking_id\": 1,\n  \"rating\": 3,\n  \"comment\": \"Повторный отзыв\"\n}"},
+        "url": {"raw": "http://127.0.0.1:8000/api/resources/1/reviews","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources","1","reviews"]}
+      }
+    },
+    {
+      "name": "16. Отзыв по чужому бронированию — ожидаем 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Accept","value": "application/json"},{"key": "Content-Type","value": "application/json"},{"key": "Authorization","value": "Bearer {{user_token}}"}],
+        "body": {"mode": "raw","raw": "{\n  \"booking_id\": 3,\n  \"rating\": 4,\n  \"comment\": \"Чужое бронирование\"\n}"},
+        "url": {"raw": "http://127.0.0.1:8000/api/resources/3/reviews","protocol": "http","host": ["127.0.0.1"],"port": "8000","path": ["api","resources","3","reviews"]}
+      }
+    }
+  ],
+  "variable": [
+    {"key": "admin_token","value": ""},
+    {"key": "user_token","value": ""}
+  ]
+}

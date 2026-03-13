@@ -8,11 +8,11 @@ class BookingSeeder extends Seeder
 {
     public function run(): void
     {
-        // Брони user (id=2)
+
         Booking::create([
             'user_id'     => 2,
             'resource_id' => 1,
-            'date'        => now()->addDay()->format('Y-m-d'),
+            'date'        => '2026-03-20',
             'start_time'  => '10:00',
             'end_time'    => '12:00',
             'status'      => 'active',
@@ -20,20 +20,28 @@ class BookingSeeder extends Seeder
 
         Booking::create([
             'user_id'     => 2,
-            'resource_id' => 2,
-            'date'        => now()->addDay()->format('Y-m-d'),
+            'resource_id' => 1,
+            'date'        => '2026-03-20',
             'start_time'  => '14:00',
             'end_time'    => '16:00',
             'status'      => 'active',
         ]);
 
-        // Бронь admin (id=1) — для теста №12
         Booking::create([
             'user_id'     => 1,
+            'resource_id' => 3,
+            'date'        => '2026-03-21',
+            'start_time'  => '10:00',
+            'end_time'    => '12:00',
+            'status'      => 'active',
+        ]);
+
+        Booking::create([
+            'user_id'     => 2,
             'resource_id' => 4,
-            'date'        => now()->addDays(3)->format('Y-m-d'),
-            'start_time'  => '09:00',
-            'end_time'    => '11:00',
+            'date'        => '2026-03-22',
+            'start_time'  => '15:00',
+            'end_time'    => '17:00',
             'status'      => 'active',
         ]);
     }

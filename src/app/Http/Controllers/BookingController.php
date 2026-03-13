@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
-    // Список бронирований
     public function index()
     {
         $user = auth('api')->user();
@@ -24,7 +23,6 @@ class BookingController extends Controller
         return response()->json($bookings);
     }
 
-    // Создать бронирование
     public function store(Request $request)
     {
         $request->validate([
@@ -36,7 +34,6 @@ class BookingController extends Controller
 
         $user = auth('api')->user();
 
-        // Проверка: активен ли ресурс
         $resource = Resource::findOrFail($request->resource_id);
         if (!$resource->is_active) {
             return response()->json([
@@ -44,13 +41,11 @@ class BookingController extends Controller
             ], 422);
         }
 
-        // Проверка пересечений по времени (ключевая бизнес-логика)
         $conflict = Booking::where('resource_id', $request->resource_id)
             ->where('date', $request->date)
             ->where('status', 'active')
             ->where(function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
-                    // Новое начало внутри существующего интервала
                     $q->where('start_time', '<', $request->end_time)
                       ->where('end_time', '>', $request->start_time);
                 });
@@ -92,20 +87,17 @@ class BookingController extends Controller
         return response()->json($booking->load('resource'), 201);
     }
 
-    // Отмена бронирования
     public function destroy($id)
     {
         $user    = auth('api')->user();
         $booking = Booking::findOrFail($id);
 
-        // Уже отменено
         if ($booking->status === 'cancelled') {
             return response()->json([
                 'message' => 'Бронирование уже отменено.'
             ], 422);
         }
 
-        // Обычный user может отменить только своё
         if (!$user->isAdmin() && $booking->user_id !== $user->id) {
             Log::warning('Попытка отменить чужое бронирование', [
                 'initiator_user_id' => $user->id,
