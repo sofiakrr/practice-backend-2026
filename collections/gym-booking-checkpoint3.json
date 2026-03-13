@@ -1,0 +1,259 @@
+{
+  "info": {
+    "name": "Cafe Booking API — Checkpoint 3",
+    "_postman_id": "cafe-booking-checkpoint3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Логин админа",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "var data = pm.response.json();",
+            "if (data.token) pm.collectionVariables.set('admin_token', data.token);"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@cafe.com\",\n  \"password\": \"password\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/auth/login",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "2. Логин обычного пользователя",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "var data = pm.response.json();",
+            "if (data.token) pm.collectionVariables.set('user_token', data.token);"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@cafe.com\",\n  \"password\": \"password\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/auth/login",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "3. Успешное бронирование (user)",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "var data = pm.response.json();",
+            "if (data.id) pm.collectionVariables.set('booking_id', data.id);"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{user_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resource_id\": 2,\n  \"date\": \"2026-03-20\",\n  \"start_time\": \"10:00\",\n  \"end_time\": \"12:00\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/bookings",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "4. Пересечение времени — ожидаем 422",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{user_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resource_id\": 2,\n  \"date\": \"2026-03-20\",\n  \"start_time\": \"11:00\",\n  \"end_time\": \"13:00\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/bookings",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "5. Бронирование на прошедшую дату — ожидаем 422",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{user_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resource_id\": 2,\n  \"date\": \"2020-01-01\",\n  \"start_time\": \"10:00\",\n  \"end_time\": \"12:00\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/bookings",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "6. Просмотр своих бронирований (user)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{user_token}}"}
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/bookings",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "7. Просмотр ВСЕХ бронирований (admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{admin_token}}"}
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/bookings",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "8. Отмена своего бронирования (user)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{user_token}}"}
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/bookings/{{booking_id}}",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "bookings", "{{booking_id}}"]
+        }
+      }
+    },
+    {
+      "name": "9. Повторная отмена — ожидаем 422",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{user_token}}"}
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/bookings/{{booking_id}}",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "bookings", "{{booking_id}}"]
+        }
+      }
+    },
+    {
+      "name": "10. Создать бронирование для теста отмены админом",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "var data = pm.response.json();",
+            "if (data.id) pm.collectionVariables.set('booking_id2', data.id);"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{user_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resource_id\": 3,\n  \"date\": \"2026-03-21\",\n  \"start_time\": \"15:00\",\n  \"end_time\": \"17:00\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/bookings",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "11. Отмена чужого бронирования админом — ожидаем 200",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{admin_token}}"}
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/bookings/{{booking_id2}}",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "bookings", "{{booking_id2}}"]
+        }
+      }
+    },
+    {
+      "name": "12. Попытка отменить чужое бронирование (user) — ожидаем 403",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{user_token}}"}
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/bookings/3",
+          "protocol": "http", "host": ["127.0.0.1"], "port": "8000",
+          "path": ["api", "bookings", "3"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {"key": "admin_token", "value": ""},
+    {"key": "user_token", "value": ""},
+    {"key": "booking_id", "value": ""},
+    {"key": "booking_id2", "value": ""}
+  ]
+}
