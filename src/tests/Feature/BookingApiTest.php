@@ -46,7 +46,7 @@ class BookingApiTest extends TestCase
         $response = $this->getJson('/api/bookings', $this->authHeaders($user));
 
         $response->assertStatus(200);
-        $response->assertJsonCount(1);
+        $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment(['user_id' => $user->id]);
         $response->assertJsonMissing(['user_id' => $otherUser->id]);
     }
@@ -146,6 +146,48 @@ class BookingApiTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJsonStructure(['message']);
+    }
+
+    public function test_admin_can_use_pagination_filter_and_sort_for_bookings_list(): void
+    {
+        $admin = $this->createUser('admin');
+        $user = $this->createUser();
+        $resource = $this->createResource();
+
+        Booking::create([
+            'user_id' => $user->id,
+            'resource_id' => $resource->id,
+            'date' => now()->addDays(1)->toDateString(),
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'status' => 'active',
+        ]);
+
+        Booking::create([
+            'user_id' => $user->id,
+            'resource_id' => $resource->id,
+            'date' => now()->addDays(2)->toDateString(),
+            'start_time' => '12:00',
+            'end_time' => '13:00',
+            'status' => 'active',
+        ]);
+
+        Booking::create([
+            'user_id' => $user->id,
+            'resource_id' => $resource->id,
+            'date' => now()->addDays(3)->toDateString(),
+            'start_time' => '14:00',
+            'end_time' => '15:00',
+            'status' => 'cancelled',
+        ]);
+
+        $response = $this->getJson('/api/bookings?status=active&sort_by=date&sort_order=desc&per_page=1', $this->authHeaders($admin));
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('per_page', 1);
+        $response->assertJsonPath('total', 2);
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.status', 'active');
     }
 
     private function createUser(string $role = 'user'): User

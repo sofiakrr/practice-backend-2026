@@ -8,17 +8,56 @@ use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $request->validate([
+            'status' => 'sometimes|in:active,cancelled',
+            'resource_id' => 'sometimes|integer|exists:resources,id',
+            'user_id' => 'sometimes|integer|exists:users,id',
+            'date_from' => 'sometimes|date',
+            'date_to' => 'sometimes|date|after_or_equal:date_from',
+            'sort_by' => 'sometimes|in:date,start_time,created_at',
+            'sort_order' => 'sometimes|in:asc,desc',
+            'per_page' => 'sometimes|integer|min:1|max:100',
+        ]);
+
         $user = auth('api')->user();
+        $query = Booking::query();
 
         if ($user->isAdmin()) {
-            $bookings = Booking::with(['user', 'resource'])->get();
+            $query->with(['user', 'resource']);
+
+            if ($request->filled('user_id')) {
+                $query->where('user_id', $request->user_id);
+            }
         } else {
-            $bookings = Booking::with(['resource'])
-                ->where('user_id', $user->id)
-                ->get();
+            $query->with(['resource'])
+                ->where('user_id', $user->id);
         }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('resource_id')) {
+            $query->where('resource_id', $request->resource_id);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('date', '<=', $request->date_to);
+        }
+
+        $sortBy = $request->get('sort_by', 'date');
+        $sortOrder = $request->get('sort_order', 'asc');
+        $query->orderBy($sortBy, $sortOrder)
+            ->orderBy('start_time', 'asc');
+
+        $perPage = $request->get('per_page', 10);
+        $bookings = $query->paginate($perPage);
 
         return response()->json($bookings);
     }

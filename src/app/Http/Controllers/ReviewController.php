@@ -12,11 +12,26 @@ class ReviewController extends Controller
 
     public function index(Request $request, Resource $resource)
     {
+        $request->validate([
+            'per_page' => 'sometimes|integer|min:1|max:100',
+            'rating' => 'sometimes|integer|min:1|max:5',
+            'sort_by' => 'sometimes|in:created_at,rating',
+            'sort_order' => 'sometimes|in:asc,desc',
+        ]);
+
         $perPage = $request->get('per_page', 10);
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
 
         $reviews = Review::where('resource_id', $resource->id)
-            ->with('user:id,name')
-            ->orderBy('created_at', 'desc')
+            ->with('user:id,name');
+
+        if ($request->filled('rating')) {
+            $reviews->where('rating', $request->rating);
+        }
+
+        $reviews = $reviews
+            ->orderBy($sortBy, $sortOrder)
             ->paginate($perPage);
 
         $avgRating = Review::where('resource_id', $resource->id)->avg('rating');

@@ -11,7 +11,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY . .
 
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader \
     && chmod +x /var/www/docker/entrypoint.sh \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 

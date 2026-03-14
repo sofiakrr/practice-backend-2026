@@ -137,6 +137,9 @@ class ResourceController extends Controller
             'end_time'   => 'required|date_format:H:i|after:start_time',
             'capacity'   => 'sometimes|integer|min:1',
             'type'       => 'sometimes|string',
+            'sort_by'    => 'sometimes|in:id,price_per_hour,capacity,reviews_avg_rating',
+            'sort_order' => 'sometimes|in:asc,desc',
+            'per_page'   => 'sometimes|integer|min:1|max:100',
         ]);
 
         $busyIds = \App\Models\Booking::where('date', $request->date)
@@ -156,6 +159,10 @@ class ResourceController extends Controller
         if ($request->has('type')) {
             $query->where('type', $request->type);
         }
+
+        $sortBy = $request->get('sort_by', 'id');
+        $sortOrder = $request->get('sort_order', 'asc');
+        $query->orderBy($sortBy, $sortOrder);
 
         $perPage   = $request->get('per_page', 10);
         $resources = $query->paginate($perPage);

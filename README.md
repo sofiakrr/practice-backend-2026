@@ -76,7 +76,7 @@ docker-compose exec app php artisan test
 - Средний рейтинг ресурса в ответах API.
 
 ### Чекпоинт 5. Тесты, Swagger, Docker
-- Добавлены автотесты (8 тестов, критичные сценарии покрыты).
+- Добавлены автотесты (9 тестов, критичные сценарии покрыты).
 - Добавлена OpenAPI-спецификация и Swagger UI.
 - Добавлены `Dockerfile` и `docker-compose.yml` (`app + db`).
 - Проект запускается одной командой: `docker-compose up`.
@@ -173,63 +173,76 @@ erDiagram
 
 Полный контракт со схемами запросов/ответов и ошибок: `src/public/openapi.yaml`.
 
+## Единые правила для списков
+
+| Эндпоинт | Пагинация | Фильтрация | Сортировка |
+|---|---|---|---|
+| `GET /api/resources` | `per_page`, `page` | `type`, `capacity`, `max_price`, `location` | `sort_by` (`id`, `price_per_hour`, `capacity`, `reviews_avg_rating`), `sort_order` |
+| `GET /api/resources/available` | `per_page`, `page` | `date`, `start_time`, `end_time`, `capacity`, `type` | `sort_by` (`id`, `price_per_hour`, `capacity`, `reviews_avg_rating`), `sort_order` |
+| `GET /api/bookings` | `per_page`, `page` | `status`, `resource_id`, `date_from`, `date_to`, `user_id` (только admin) | `sort_by` (`date`, `start_time`, `created_at`), `sort_order` |
+| `GET /api/resources/{resource}/reviews` | `per_page`, `page` | `rating` | `sort_by` (`created_at`, `rating`), `sort_order` |
+
+По умолчанию: `per_page=10`, `sort_order=asc` (для отзывов по умолчанию `desc`), сортировка по полю по умолчанию конкретного эндпоинта.
+
 ## Тестовые пользователи (seed)
 - Админ: `admin@cafe.com` / `password`
 - Пользователь: `user@cafe.com` / `password`
 
 ## Как проверить ключевые сценарии
 
-### 1. Запуск проекта и документации
+### 1. Поднять проект
 ```bash
 docker-compose up --build
 ```
 Проверка:
-- `http://localhost:8000/up` -> 200
+- `http://localhost:8000/up` -> `200`
 - `http://localhost:8000/docs` -> Swagger UI
 
-### 2. Авторизация (чекпоинт 2)
-```powershell
-Invoke-RestMethod -Method Post -Uri "http://localhost:8000/api/auth/login" -ContentType "application/json" -Body '{"email":"admin@cafe.com","password":"password"}'
-Invoke-RestMethod -Method Post -Uri "http://localhost:8000/api/auth/login" -ContentType "application/json" -Body '{"email":"user@cafe.com","password":"password"}'
-```
+### 2. Прогнать один сценарий этапов 3-4 (Postman)
+Импортируйте коллекцию `collections/cafe-booking-checkpoint4.json` и выполните запросы **по порядку**.
 
-Проверить в Swagger:
-- `POST /api/resources` без токена -> `401`
-- `POST /api/resources` от обычного пользователя -> `403`
-- `POST/PUT/DELETE /api/resources` от админа -> успешные ответы
+Сценарий:
+1. Логин пользователя.
+2. Список ресурсов с пагинацией/фильтрацией/сортировкой.
+3. Создание бронирования (happy path).
+4. Попытка пересечения по времени -> `422`.
+5. Список своих бронирований (единые list-правила).
+6. Расписание ресурса на день и на неделю.
+7. Поиск свободных ресурсов с фильтрами и сортировкой.
+8. Отмена созданного бронирования.
+9. Проверка отменённых бронирований.
+10. Список отзывов ресурса с пагинацией/сортировкой.
+11. Создание отзыва по завершённому бронированию -> `201`.
+12. Повторный отзыв по той же брони -> `422`.
 
-### 3. Бронирования и конфликт интервалов (чекпоинт 3)
-Проверка через Swagger:
-- создать бронирование (`POST /api/bookings`) -> `201`
-- создать второе на пересекающееся время -> `422`
-- отменить бронирование (`DELETE /api/bookings/{id}`)
-- получить список бронирований (`GET /api/bookings`)
 
-Ключевое правило пересечения:
-- конфликт есть, если `existing.start < new.end` и `existing.end > new.start`.
+### 3. Проверить stage 2 вручную (роль admin)
+В той же коллекции:
+1. Логин админа.
+2. `POST /api/resources` (создание).
+3. `PUT /api/resources/{resource}` (обновление).
+4. `DELETE /api/resources/{resource}` (удаление).
 
-### 4. Расписание, поиск, отзывы, рейтинг (чекпоинт 4)
-Проверка через Swagger:
-- `GET /api/resources/available` (поиск свободных)
-- `GET /api/resources/{id}/schedule?date=YYYY-MM-DD&mode=day|week`
-- `GET /api/resources` с фильтрами/сортировкой/пагинацией
-- `GET /api/resources/{id}/reviews` (список + `average_rating`)
-- `POST /api/resources/{id}/reviews` (срабатывают бизнес-ограничения)
-
-### 5. Тесты, документация, упаковка (чекпоинт 5)
+### 4. Прогнать автотесты (stage 5)
 ```bash
 docker-compose exec app php artisan test
 ```
-Покрыты критичные сценарии:
-- доступ без/с токеном;
-- создание бронирования;
-- пересечение времени;
-- смежные интервалы;
-- неактивный ресурс.
+Покрытие критичных сценариев:
+- доступ без/с токеном,
+- создание бронирования,
+- пересечение интервалов,
+- граничный случай смежных интервалов,
+- неактивный ресурс,
+- единые list-правила для бронирований (пагинация/фильтр/сортировка).
 
 ## Postman коллекции
-- `collections/gym-booking-checkpoint3.json`
-- `collections/cafe-booking-checkpoint4.json`
+- `collections/cafe-booking-checkpoint4.json` — основной воспроизводимый сценарий этапов 3-4 + проверка stage 2 CRUD admin.
+
+
+В коллекции уже преднастроены переменные:
+- `base_url=127.0.0.1:8000`
+- `future_date=2099-01-15`
+- `review_booking_id=5` (завершённое бронирование из seed-данных для сценария создания отзыва)
 
 ## Swagger / OpenAPI
 - UI: `http://localhost:8000/docs`
