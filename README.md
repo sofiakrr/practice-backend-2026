@@ -95,7 +95,7 @@ erDiagram
         string name
         string email UNIQUE
         string password
-        enum role "admin|user"
+        string role
         datetime created_at
         datetime updated_at
     }
@@ -120,7 +120,7 @@ erDiagram
         date date
         time start_time
         time end_time
-        enum status "active|cancelled"
+        string status
         datetime created_at
         datetime updated_at
     }
