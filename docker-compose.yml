@@ -1,0 +1,55 @@
+services:
+  app:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    container_name: cafe_booking_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      APP_KEY: base64:K6+5dnQfnMjYXh7lXrKsJ46qy8iGBV8M7vLUYKuNq1M=
+      JWT_SECRET: docker-jwt-secret-key-change-me
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_DATABASE: cafe_booking
+      DB_USERNAME: booking_user
+      DB_PASSWORD: booking_password
+      CACHE_STORE: file
+      SESSION_DRIVER: file
+      QUEUE_CONNECTION: sync
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+
+  db:
+    image: mysql:8.0
+    container_name: cafe_booking_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: cafe_booking
+      MYSQL_USER: booking_user
+      MYSQL_PASSWORD: booking_password
+      MYSQL_ROOT_PASSWORD: root_password
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+
+volumes:
+  mysql_data:
+
+networks:
+  backend:
