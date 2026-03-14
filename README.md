@@ -91,9 +91,9 @@ erDiagram
     BOOKINGS ||--o| REVIEWS : based_on
 
     USERS {
-        bigint id PK
+        bigint id
         string name
-        string email UNIQUE
+        string email
         string password
         string role
         datetime created_at
@@ -101,7 +101,7 @@ erDiagram
     }
 
     RESOURCES {
-        bigint id PK
+        bigint id
         string name
         text description
         string type
@@ -114,9 +114,9 @@ erDiagram
     }
 
     BOOKINGS {
-        bigint id PK
-        bigint user_id FK
-        bigint resource_id FK
+        bigint id
+        bigint user_id
+        bigint resource_id
         date date
         time start_time
         time end_time
@@ -126,10 +126,10 @@ erDiagram
     }
 
     REVIEWS {
-        bigint id PK
-        bigint user_id FK
-        bigint booking_id FK
-        bigint resource_id FK
+        bigint id
+        bigint user_id
+        bigint booking_id
+        bigint resource_id
         int rating
         text comment
         datetime created_at
